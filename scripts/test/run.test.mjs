@@ -34,3 +34,13 @@ test("fleet runs pass plugins and the product's permissions explicitly (untruste
   assert.equal(bare.filter((a) => a === "--plugin-dir").length, 1);
   assert.ok(!bare.includes("--allowedTools"));
 });
+
+test("PR titles drop the /skill prefix and cut at a word boundary", async () => {
+  const { prTitleText } = await import("../commands/run.mjs");
+  assert.equal(prTitleText("/factory:onboard"), "");
+  assert.equal(prTitleText("Upgrade Next.js"), "Upgrade Next.js");
+  assert.equal(
+    prTitleText("/factory:feature Add an About page at /about: a heading, two short paragraphs and a link home"),
+    "Add an About page at /about: a heading, two short paragraphs…",
+  );
+});

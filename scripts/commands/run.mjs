@@ -35,7 +35,7 @@ import {
 } from "../lib/util.mjs";
 
 export const help = `run "<prompt>" | --prompt-file <file>  [--only a,b] [--type web|mobile] [--all]
-        [--model sonnet] [--max-turns 40] [--branch name] [--no-pr] [--dry-run] [--yes]
+        [--model sonnet] [--max-turns 40] [--branch name] [--title "..."] [--no-pr] [--dry-run] [--yes]
     Run one headless Claude Code task in every selected product (one at a time). Each gets a fresh
     branch from its default branch, then the runner commits, pushes and opens a PR. Uses your
     subscription: fleet runs share usage limits with your interactive sessions.`;
@@ -62,6 +62,7 @@ export async function run(argv) {
       model: { type: "string" },
       "max-turns": { type: "string" },
       branch: { type: "string" },
+      title: { type: "string" },
       pr: { type: "boolean", default: true },
       "dry-run": { type: "boolean", default: false },
       yes: { type: "boolean", default: false },
@@ -80,7 +81,7 @@ export async function run(argv) {
     all: values.all,
   });
   if (!products.length) return warn("No products selected.");
-  const slug = slugify(prompt.split(/\r?\n/)[0]);
+  const slug = slugify(prTitleText(prompt) || prompt.split(/\r?\n/)[0]);
   const branch = values.branch ?? `factory/run-${slug}`;
   const model = values.model ?? cfg.fleetRun.model;
   const maxTurns = String(values["max-turns"] ?? cfg.fleetRun.maxTurns);
@@ -167,7 +168,9 @@ export async function run(argv) {
         git(["checkout", "--quiet", base], dir);
         continue;
       }
-      const title = `chore(factory): ${prompt.split(/\r?\n/)[0].slice(0, 60)}`;
+      const title =
+        values.title ??
+        `chore(factory): ${prTitleText(prompt) || prompt.split(/\r?\n/)[0].trim()}`;
       commitAll(
         dir,
         `${title}\n\nFleet run via the software factory.\n\nPrompt:\n${prompt}`,
@@ -255,6 +258,18 @@ export function sessionArgs(dir, type) {
   if (perms.allow?.length) args.push("--allowedTools", ...perms.allow);
   if (perms.deny?.length) args.push("--disallowedTools", ...perms.deny);
   return args;
+}
+
+/** First line of the prompt without a leading /skill invocation, cut at a word boundary. */
+export function prTitleText(prompt, max = 60) {
+  const line = prompt
+    .split(/\r?\n/)[0]
+    .replace(/^\/[\w:-]+\s*/, "")
+    .trim();
+  if (line.length <= max) return line;
+  const cut = line.slice(0, max + 1);
+  const at = cut.lastIndexOf(" ");
+  return `${cut.slice(0, at > 20 ? at : max).replace(/[\s,.:;-]+$/, "")}…`;
 }
 
 /** claude is a native executable with the official installer; npm installs a .cmd shim on Windows. */
