@@ -35,6 +35,11 @@
       "Bash(yarn run *)",
       "Bash(yarn test *)",
       "Bash(bun run *)",
+      "Bash(npm ci)",
+      "Bash(npm ci *)",
+      "Bash(pnpm install --frozen-lockfile*)",
+      "Bash(yarn install --frozen-lockfile*)",
+      "Bash(bun install --frozen-lockfile*)",
       "Bash(npx tsc *)",
       "Bash(node *scripts/verify.mjs*)"
     ],

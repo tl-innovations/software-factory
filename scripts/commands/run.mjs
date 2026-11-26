@@ -113,6 +113,7 @@ export async function run(argv) {
       const dir = ensureClone(product, cfg);
       const base = defaultBranch(dir);
       startBranch(dir, branch, base);
+      installDeps(dir);
       const res = exec(
         claude.cmd,
         [
@@ -195,6 +196,36 @@ export async function run(argv) {
   log("");
   table(rows, ["PRODUCT", "RESULT", "DETAIL"]);
   log(c.dim(`Full Claude output per product: ${logDir}`));
+}
+
+/**
+ * Fresh clones have no node_modules: without them the stop gate and every check fail, and Claude
+ * burns its turns on environment errors. Install deterministically before Claude starts.
+ */
+function installDeps(dir) {
+  let install = "";
+  try {
+    install =
+      JSON.parse(readFileSync(join(dir, ".factory", "product.json"), "utf8"))
+        .commands?.install ?? "";
+  } catch {
+    /* no manifest: nothing to install */
+  }
+  if (!install) return;
+  log(c.dim(`  installing: ${install}`));
+  const r = exec(install, [], {
+    cwd: dir,
+    shell: true,
+    allowFail: true,
+    timeoutMs: 15 * 60 * 1000,
+  });
+  if (r.code !== 0) {
+    const tail = (r.stderr || r.stdout || "").trim().split("\n").slice(-5);
+    warn(
+      `  install failed (${r.code}). Claude will start anyway and report it.`,
+    );
+    for (const line of tail) log(c.dim(`    ${line}`));
+  }
 }
 
 /**
