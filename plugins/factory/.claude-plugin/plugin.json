@@ -1,7 +1,7 @@
 {
   "name": "factory",
   "displayName": "Software Factory: Core",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Shared delivery pipeline for every product (spec → plan → build → verify → review → ship), planner/reviewer/test-writer agents, and guardrail hooks driven by .factory/product.json.",
   "author": {
     "name": "Software Factory"

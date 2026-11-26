@@ -60,12 +60,13 @@ Use the factory `ship` skill: push, then open the PR with the spec, plan summary
 
 ## Non-interactive runs (CI, `claude -p`, fleet runs)
 
-Never wait at a gate. Put the acceptance criteria and a plan summary in the PR body under **Spec** and
+Never wait at a gate, but **never skip a stage either**. Review (the `reviewer` subagent) runs in every
+mode. Unattended work has no human watching, so it matters even more there. Put the acceptance criteria and a plan summary in the PR body under **Spec** and
 **Plan**, so the human approves them at review time.
 
-In a **fleet run** the runner commits, pushes and opens the PR from your final summary. Skip `ship`, keep the
-spec and plan files in the diff, and start your final summary with **Spec** (acceptance criteria) and
-**Plan** sections.
+In a **fleet run** the runner commits, pushes and opens the PR from your final summary. Skip `ship` (only `ship`),
+keep the spec and plan files in the diff, and start your final summary with **Spec** (acceptance
+criteria), **Plan** and **Review** (the reviewer's verdict and what you fixed) sections.
 
 ## Final report
 

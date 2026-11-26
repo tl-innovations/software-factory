@@ -86,3 +86,28 @@ Caveats found during research:
 - **Live headless Claude** sessions (Haiku) in an untrusted, scaffolded product:
   - `git push origin main` is denied by the plugin hook, and the call shows up in `permission_denials`.
   - With the fleet runner's arguments, `npm run lint` is allowed and `cat .env` is denied.
+
+## Live end-to-end test on GitHub (November 2026)
+
+The factory was published to a GitHub org and run against three real product repos: a new Next.js
+site (public), a new Expo app (private), and an existing Vite site that had never seen the factory
+(private, adopted). Every lifecycle step ran for real: `new`, `adopt`, CI, `sync`, `run` (onboard and
+feature), `status`, `doctor`, marketplace install from GitHub, branch rulesets, and merges.
+
+Bugs it found (all fixed, with regression tests where possible):
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Product CI never ran after `new` | Scaffolders run their own `git init`, which follows `init.defaultBranch` (often `master`). CI callers only triggered on `main` | `new` renames to `main`. CI callers render `{{DEFAULT_BRANCH}}` from each product's real default branch (adopt, sync, doctor) |
+| Next.js `typecheck` green locally, red in CI | Next 15.5+ declares `LayoutProps`/`PageProps` in gitignored `.next/types` | Typecheck for Next is `next typegen && tsc --noEmit`. The `new` baseline now runs on a clean clone with a fresh install, like CI |
+| Vite `typecheck` always green, even with type errors | Solution-style `tsconfig.json` (`files: []` + `references`) makes `tsc --noEmit` check nothing | Detection uses `tsc -b --noEmit` when `references` are present |
+| First fleet-run onboarding did nothing useful | Fresh clones have no `node_modules`. The stop gate failed on missing binaries, and `npm ci` wasn't allowed | The runner installs `commands.install` before Claude starts. Lockfile installs are allowed in product settings |
+| Fleet-run PR full of formatting churn | The operator's personal `~/.claude` PostToolUse formatter ran inside the product | Fleet runs use `--setting-sources project,local` |
+| Headless Claude ignored the product's `permissions.allow` | Workspace clones are never "trusted" folders | The runner passes `--allowedTools`/`--disallowedTools` and `--plugin-dir` explicitly |
+| Factory self-check would have failed on its first run | The official actionlint image includes shellcheck (SC2129) | Grouped `$GITHUB_OUTPUT` redirects |
+
+Things that worked first time: the reusable `ci.yml` on all three stacks (npm, Next, Expo, Vite +
+oxlint); skipping the opt-in review and the EAS jobs; `sync` idempotency and PR reuse; the JSON settings
+merge; marketplace install from GitHub; the documented ruleset (a direct push to `main` was rejected with
+GH013, and merging a red PR was refused); and headless onboarding that took a stock Expo template from
+2 failing checks to 4 green ones (19 turns).

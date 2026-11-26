@@ -44,6 +44,7 @@ const FLEET_PROMPT = `You are running unattended as one step of a software-facto
 - Do not ask questions; make reasonable assumptions and list them in your final summary.
 - Make the requested change in THIS repository only, following CLAUDE.md and .factory/standards.md.
 - Before finishing, run the checks listed under "ci" in .factory/product.json (the factory verify skill does this) and fix what you broke.
+- Don't wait at approval gates, but don't skip pipeline stages either (for example the reviewer subagent).
 - Do NOT commit, push, or open pull requests. The fleet runner does that after you finish.
 - If the request does not apply to this repository, change nothing and explain why.
 - End with a short summary: what changed, the check results, assumptions, and anything left undone.`;
