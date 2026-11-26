@@ -63,6 +63,10 @@ Use the factory `ship` skill: push, then open the PR with the spec, plan summary
 Never wait at a gate. Put the acceptance criteria and a plan summary in the PR body under **Spec** and
 **Plan**, so the human approves them at review time.
 
+In a **fleet run** the runner commits, pushes and opens the PR from your final summary. Skip `ship`, keep the
+spec and plan files in the diff, and start your final summary with **Spec** (acceptance criteria) and
+**Plan** sections.
+
 ## Final report
 
 PR link · the acceptance criteria (met or not) · the checks you ran and their results · anything you
