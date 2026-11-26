@@ -13,6 +13,15 @@
       "addedAt": "2026-11-26"
     },
     {
+      "name": "factory-demo-legacy",
+      "repo": "tl-innovations/factory-demo-legacy",
+      "type": "web",
+      "status": "active",
+      "framework": "vite",
+      "deploy": "vercel",
+      "addedAt": "2026-11-26"
+    },
+    {
       "name": "factory-demo-site",
       "repo": "tl-innovations/factory-demo-site",
       "type": "web",

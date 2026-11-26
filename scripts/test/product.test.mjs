@@ -41,7 +41,7 @@ test("detects a Next.js app (npm, no tests yet)", () => {
   assert.equal(d.packageManager, "npm");
   assert.equal(d.commands.install, "npm ci");
   assert.equal(d.commands.lint, "npm run lint");
-  assert.equal(d.commands.typecheck, "npx tsc --noEmit");
+  assert.equal(d.commands.typecheck, "npx next typegen && npx tsc --noEmit");
   assert.equal(
     d.commands.test,
     "",

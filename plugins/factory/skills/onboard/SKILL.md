@@ -32,3 +32,8 @@ disable-model-invocation: true
 
 5. **Ship it.** On a branch `chore/factory-onboard`, use the factory `ship` skill with the title
    `chore: onboard into software factory`.
+
+**Unattended (fleet run, CI):** there's nobody to ask. Make the baseline fixes you're confident in, skip
+anything large or risky, and don't file issues. Don't commit or push either (the runner does that). End
+with a summary: checks before → after, manifest changes, baseline fixes, and the ranked recommendations
+from step 4.

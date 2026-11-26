@@ -1,4 +1,5 @@
-import { existsSync, mkdirSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import {
   basename,
   dirname,
@@ -248,12 +249,21 @@ export async function newProduct(argv) {
 /** Run the plugin's verify script on a fresh product and report which ci checks pass. */
 function runBaseline(dir) {
   info(
-    "Baseline check: running the manifest's ci commands on the fresh scaffold…",
+    "Baseline check: running the manifest's ci commands on a clean clone (like CI)…",
   );
+  // A clean clone + install mirrors CI: no gitignored build output (.next/, generated types)
+  // that would make checks pass locally and fail on GitHub.
+  const clone = mkdtempSync(join(tmpdir(), "factory-baseline-"));
   const script = join(ROOT, "plugins", "factory", "scripts", "verify.mjs");
-  const r = run(process.execPath, [script, "--dir", dir, "--json"], {
-    allowFail: true,
-  });
+  let r;
+  try {
+    git(["clone", "--quiet", dir, clone], ROOT);
+    r = run(process.execPath, [script, "--dir", clone, "--install", "--json"], {
+      allowFail: true,
+    });
+  } finally {
+    rmSync(clone, { recursive: true, force: true, maxRetries: 3 });
+  }
   let report;
   try {
     report = JSON.parse(r.stdout);

@@ -102,7 +102,9 @@ export function detect(dir) {
     typecheck: typecheckScript
       ? runScript(typecheckScript)
       : has("tsconfig.json")
-        ? tscCommand(dir)
+        ? // Next.js 15.5+ declares route types (LayoutProps, PageProps) in gitignored .next/types;
+          // generate them first or tsc fails on every clean checkout (CI, fresh clones).
+          (framework === "next" ? "npx next typegen && " : "") + tscCommand(dir)
         : "",
     test:
       testScript && !/no test specified/i.test(scripts.test)
