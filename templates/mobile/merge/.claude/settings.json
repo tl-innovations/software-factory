@@ -1,0 +1,17 @@
+{
+  "enabledPlugins": {
+    "factory-mobile@{{MARKETPLACE}}": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npx expo lint *)",
+      "Bash(npx expo-doctor *)",
+      "Bash(npx expo install --check *)",
+      "Bash(npx expo export *)",
+      "Bash(npx eas-cli build:list *)",
+      "Bash(npx eas-cli update:list *)",
+      "Bash(eas build:list *)",
+      "Bash(eas update:list *)"
+    ]
+  }
+}

@@ -1,0 +1,2 @@
+# Templates contain {{PLACEHOLDERS}} rendered by scripts/factory.mjs; keep them byte-exact.
+templates/

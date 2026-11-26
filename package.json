@@ -1,0 +1,14 @@
+{
+  "name": "software-factory",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Control repo for a fleet of web and mobile products built with Claude Code.",
+  "engines": {
+    "node": ">=20.16"
+  },
+  "scripts": {
+    "factory": "node scripts/factory.mjs",
+    "test": "node --test \"scripts/test/*.test.mjs\"",
+    "validate": "node scripts/factory.mjs validate"
+  }
+}

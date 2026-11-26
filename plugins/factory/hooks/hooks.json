@@ -1,0 +1,38 @@
+{
+  "description": "Factory guardrails. They only activate in repos that have .factory/product.json. PreToolUse(Bash) denies destructive or out-of-policy commands (pushing to protected branches, force-push, merging PRs, piping downloads into a shell) and asks before deploys, store submits and publishes. PreToolUse(Write|Edit|NotebookEdit) blocks edits to secrets and to factory-managed files. Stop runs the product's onStop gates (e.g. lint, typecheck) when files changed, and gives up after 2 consecutive blocks.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/guard-bash.mjs\"",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/protect-files.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/stop-gate.mjs\"",
+            "timeout": 600
+          }
+        ]
+      }
+    ]
+  }
+}

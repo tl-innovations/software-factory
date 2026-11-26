@@ -1,0 +1,28 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "software-factory",
+  "description": "Shared Claude Code skills, agents and guardrail hooks for every product in the fleet.",
+  "owner": {
+    "name": "Software Factory"
+  },
+  "plugins": [
+    {
+      "name": "factory",
+      "source": "./plugins/factory",
+      "description": "Core delivery pipeline (spec → plan → build → verify → review → ship), reviewer/planner/test-writer agents, and guardrail hooks. Enable in every product.",
+      "category": "development"
+    },
+    {
+      "name": "factory-web",
+      "source": "./plugins/factory-web",
+      "description": "Web product skills: quality audit (Lighthouse, accessibility, SEO, security headers) and Playwright end-to-end tests.",
+      "category": "development"
+    },
+    {
+      "name": "factory-mobile",
+      "source": "./plugins/factory-mobile",
+      "description": "Mobile (Expo / EAS) skills: store releases and OTA updates with safety checks.",
+      "category": "development"
+    }
+  ]
+}

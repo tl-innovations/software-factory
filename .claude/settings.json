@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(node scripts/factory.mjs status *)",
+      "Bash(node scripts/factory.mjs doctor *)",
+      "Bash(node scripts/factory.mjs list *)",
+      "Bash(node scripts/factory.mjs validate *)",
+      "Bash(node scripts/factory.mjs sync --dry-run *)",
+      "Bash(node scripts/factory.mjs * --help)",
+      "Bash(npm test *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(gh repo view *)",
+      "Bash(gh pr list *)",
+      "Bash(gh pr view *)",
+      "Bash(gh run list *)",
+      "Bash(gh run view *)",
+      "Bash(claude plugin validate *)"
+    ],
+    "deny": ["Read(./.env)", "Read(./.env.*)"]
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "type": "mobile",
+  "description": "iOS + Android app. Default scaffold: Expo (React Native, TypeScript, Expo Router). Builds, store submits and OTA updates go through EAS.",
+  "scaffold": "npx create-expo-app@latest {{PRODUCT_DIR}}",
+  "postScaffold": [
+    "npx expo lint"
+  ],
+  "plugins": [
+    "factory",
+    "factory-mobile"
+  ],
+  "product": {
+    "framework": "expo",
+    "packageManager": "npm",
+    "nodeVersion": "lts/*",
+    "autonomy": "supervised",
+    "commands": {
+      "install": "npm ci",
+      "dev": "npx expo start",
+      "lint": "npx expo lint",
+      "typecheck": "npx tsc --noEmit",
+      "test": "npm run test --if-present",
+      "doctor": "npx expo-doctor",
+      "build": "npx expo export --output-dir dist",
+      "e2e": ""
+    },
+    "ci": [
+      "lint",
+      "typecheck",
+      "test",
+      "doctor",
+      "build"
+    ],
+    "gates": {
+      "onStop": [
+        "lint",
+        "typecheck"
+      ]
+    },
+    "deploy": {
+      "provider": "eas",
+      "productionBranch": "main"
+    },
+    "mobile": {
+      "otaChannel": "production",
+      "releaseWorkflow": ".eas/workflows/release.yml"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+# Managed by the software factory ({{FACTORY_REPO}}). Edits here are overwritten by `factory sync`.
+#
+# Claude PR review. It's opt-in per PR to protect your subscription usage:
+#   - add the `claude-review` label to a PR, or
+#   - set repo variable FACTORY_AUTO_REVIEW=true to review every non-draft PR when it opens.
+# Optional repo variable: FACTORY_REVIEW_MODEL (default: sonnet).
+name: factory-claude-review
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, labeled]
+
+jobs:
+  review:
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      ((github.event.action == 'labeled' && github.event.label.name == 'claude-review') ||
+       (github.event.action != 'labeled' && vars.FACTORY_AUTO_REVIEW == 'true'))
+    uses: "{{FACTORY_REPO}}/.github/workflows/claude-review.yml@{{FACTORY_REF}}"
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+    with:
+      model: ${{ vars.FACTORY_REVIEW_MODEL || 'sonnet' }}
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

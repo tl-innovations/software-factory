@@ -1,0 +1,43 @@
+# Managed by the software factory ({{FACTORY_REPO}}). Edits here are overwritten by `factory sync`.
+name: Feature
+description: Propose a feature. Add the `claude` label (or comment @claude) to have Claude implement it.
+title: "feat: "
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Write this for a reviewer, not just for Claude. Claude turns it into a spec in `docs/specs/`,
+        and the PR is reviewed against the acceptance criteria below.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or opportunity
+      description: Who is affected, and why does it matter?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: What should be true when this ships?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Testable statements, one per line.
+      placeholder: |
+        - Given a signed-out visitor, when they open /pricing, then they see three plans.
+        - The page scores ≥ 90 on Lighthouse accessibility.
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope
+  - type: textarea
+    id: notes
+    attributes:
+      label: Designs, links, notes

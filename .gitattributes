@@ -1,0 +1,5 @@
+# Keep LF everywhere: hook scripts, workflow shell and templates must be byte-identical across OSes.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary

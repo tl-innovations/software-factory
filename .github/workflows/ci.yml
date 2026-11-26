@@ -1,0 +1,94 @@
+# Reusable: generic product checks, used by both web and mobile products.
+#
+# Reads .factory/product.json in the calling repo and runs each command named in "ci"
+# (e.g. ["lint", "typecheck", "test", "build"]) from "commands". It runs every step even
+# after a failure, so one run reports all of them, and writes a summary table.
+#
+# Caller (managed template):  jobs.checks.uses: OWNER/software-factory/.github/workflows/ci.yml@main
+name: ci (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: Directory containing .factory/product.json
+        type: string
+        default: "."
+      timeout-minutes:
+        type: number
+        default: 30
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Read .factory/product.json
+        id: product
+        run: |
+          f=.factory/product.json
+          if [ ! -f "$f" ]; then
+            echo "::error file=$f::Missing product manifest. Run 'factory adopt' or 'factory sync' from the factory repo."
+            exit 1
+          fi
+          {
+            echo "pm=$(jq -r '.packageManager // "npm"' "$f")"
+            echo "node=$(jq -r '.nodeVersion // "lts/*"' "$f")"
+            echo 'install<<EOF_FACTORY'
+            jq -r '.commands.install // ""' "$f"
+            echo 'EOF_FACTORY'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Set up Bun
+        if: steps.product.outputs.pm == 'bun'
+        uses: oven-sh/setup-bun@v2
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ steps.product.outputs.node }}
+          cache: ${{ steps.product.outputs.pm == 'npm' && 'npm' || '' }}
+          package-manager-cache: ${{ steps.product.outputs.pm == 'npm' }}
+
+      - name: Enable pnpm / yarn via corepack
+        if: steps.product.outputs.pm == 'pnpm' || steps.product.outputs.pm == 'yarn'
+        run: npm install -g corepack@latest && corepack enable
+
+      - name: Install dependencies
+        if: steps.product.outputs.install != ''
+        env:
+          CMD: ${{ steps.product.outputs.install }}
+        run: bash -c "$CMD"
+
+      - name: Run product checks
+        run: |
+          f=.factory/product.json
+          failed=""
+          summary="| Check | Command | Result | Time |\n|---|---|---|---|\n"
+          for name in $(jq -r '(.ci // ["lint","typecheck","test","build"])[]' "$f"); do
+            cmd=$(jq -r --arg n "$name" '.commands[$n] // ""' "$f")
+            if [ -z "$cmd" ]; then
+              echo "::notice::Skipping '$name': no command in .factory/product.json"
+              summary+="| $name | (none) | skipped | |\n"
+              continue
+            fi
+            if [ "$name" = "e2e" ] && [[ "$cmd" == *playwright* ]]; then
+              npx playwright install --with-deps
+            fi
+            echo "::group::$name → $cmd"
+            start=$(date +%s)
+            if bash -c "$cmd"; then result="✅ pass"; else result="❌ fail"; failed+=" $name"; echo "::error::$name failed: $cmd"; fi
+            echo "::endgroup::"
+            summary+="| $name | \`$cmd\` | $result | $(( $(date +%s) - start ))s |\n"
+          done
+          printf '## Factory checks\n\n%b' "$summary" >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$failed" ]; then echo "Failed:$failed"; exit 1; fi

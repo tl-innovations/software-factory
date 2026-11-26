@@ -1,0 +1,21 @@
+# Managed by the software factory ({{FACTORY_REPO}}). Edits here are overwritten by `factory sync`.
+#
+# Runs every command listed in .factory/product.json → "ci" (lint, typecheck, test, build, ...).
+# Deploys are left to your host's Git integration (Vercel / Netlify / Cloudflare preview + production).
+name: factory-ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: factory-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    uses: "{{FACTORY_REPO}}/.github/workflows/ci.yml@{{FACTORY_REF}}"

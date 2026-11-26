@@ -1,0 +1,11 @@
+# Disposable clones of product repos used by `factory sync` / `factory run`
+.workspace/
+
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+
+# Personal Claude Code overrides
+.claude/settings.local.json
+CLAUDE.local.md

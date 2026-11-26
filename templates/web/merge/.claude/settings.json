@@ -1,0 +1,8 @@
+{
+  "enabledPlugins": {
+    "factory-web@{{MARKETPLACE}}": true
+  },
+  "permissions": {
+    "allow": ["Bash(npx playwright test *)", "Bash(npx playwright show-report *)", "Bash(npx lighthouse *)"]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "web",
+  "description": "Website or web app. Default scaffold: Next.js (App Router, TypeScript, ESLint). Swap `scaffold` for Astro, Vite, Remix, etc.",
+  "scaffold": "npx create-next-app@latest {{PRODUCT_DIR}} --ts --eslint --app --src-dir --use-npm --yes",
+  "plugins": ["factory", "factory-web"],
+  "product": {
+    "framework": "next",
+    "packageManager": "npm",
+    "nodeVersion": "lts/*",
+    "autonomy": "supervised",
+    "commands": {
+      "install": "npm ci",
+      "dev": "npm run dev",
+      "lint": "npm run lint",
+      "typecheck": "npx tsc --noEmit",
+      "test": "npm run test --if-present",
+      "build": "npm run build",
+      "e2e": ""
+    },
+    "ci": ["lint", "typecheck", "test", "build"],
+    "gates": { "onStop": ["lint", "typecheck"] },
+    "deploy": { "provider": "vercel", "productionBranch": "main" }
+  }
+}

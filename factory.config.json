@@ -1,0 +1,15 @@
+{
+  "$comment": "Run `node scripts/factory.mjs setup` to fill factoryRepo/githubOwner from your git remote. See docs/02-setup.md.",
+  "factoryRepo": "OWNER/software-factory",
+  "factoryRef": "main",
+  "marketplace": "software-factory",
+  "githubOwner": "OWNER",
+  "productsDir": "..",
+  "workspaceDir": ".workspace",
+  "defaultVisibility": "private",
+  "fleetRun": {
+    "model": "sonnet",
+    "maxTurns": 40,
+    "permissionMode": "acceptEdits"
+  }
+}

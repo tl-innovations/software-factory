@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Software factory product registry",
+  "type": "object",
+  "required": ["products"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "products": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "repo", "type", "status"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$",
+            "description": "Short kebab-case id used by the CLI (--only name)."
+          },
+          "repo": {
+            "type": "string",
+            "pattern": "^[^/\\s]+/[^/\\s]+$",
+            "description": "GitHub owner/repo."
+          },
+          "type": { "enum": ["web", "mobile"] },
+          "status": {
+            "enum": ["active", "maintenance", "paused", "archived"],
+            "description": "Fleet commands skip paused/archived products unless --all is passed."
+          },
+          "description": { "type": "string" },
+          "framework": {
+            "type": "string",
+            "description": "Detected or declared framework, e.g. next, astro, vite, expo."
+          },
+          "deploy": {
+            "type": "string",
+            "description": "Where it ships: vercel, netlify, cloudflare, eas, etc."
+          },
+          "localPath": {
+            "type": "string",
+            "description": "Optional path to your day-to-day clone (relative to the factory repo or absolute)."
+          },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "addedAt": { "type": "string", "format": "date" }
+        }
+      }
+    }
+  }
+}

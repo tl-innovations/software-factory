@@ -1,0 +1,111 @@
+# Reusable: EAS (Expo Application Services) jobs for mobile products.
+#
+#   mode: preview  publish an EAS Update to branch "pr-<number>" (testers open it in a dev/preview build)
+#   mode: update   publish an OTA update to `branch` (default: product.json mobile.otaChannel)
+#   mode: release  run the EAS workflow at product.json mobile.releaseWorkflow (store builds + submit)
+#
+# Requires the EXPO_TOKEN secret (expo.dev → Account settings → Access tokens).
+name: mobile-eas (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      mode:
+        type: string
+        required: true
+      branch:
+        description: EAS Update branch (update/preview modes). Defaults are described above.
+        type: string
+        default: ""
+      environment:
+        description: EAS environment for `eas update --environment` (preview | production)
+        type: string
+        default: ""
+    secrets:
+      EXPO_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  eas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Read .factory/product.json
+        id: product
+        run: |
+          f=.factory/product.json
+          {
+            echo "pm=$(jq -r '.packageManager // "npm"' "$f")"
+            echo "node=$(jq -r '.nodeVersion // "lts/*"' "$f")"
+            echo "channel=$(jq -r '.mobile.otaChannel // "production"' "$f")"
+            echo "workflow=$(jq -r '.mobile.releaseWorkflow // ".eas/workflows/release.yml"' "$f")"
+            echo 'install<<EOF_FACTORY'
+            jq -r '.commands.install // ""' "$f"
+            echo 'EOF_FACTORY'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ steps.product.outputs.node }}
+          cache: ${{ steps.product.outputs.pm == 'npm' && 'npm' || '' }}
+          package-manager-cache: ${{ steps.product.outputs.pm == 'npm' }}
+
+      - name: Enable pnpm / yarn via corepack
+        if: steps.product.outputs.pm == 'pnpm' || steps.product.outputs.pm == 'yarn'
+        run: npm install -g corepack@latest && corepack enable
+
+      - name: Install dependencies
+        if: steps.product.outputs.install != ''
+        env:
+          CMD: ${{ steps.product.outputs.install }}
+        run: bash -c "$CMD"
+
+      - name: Set up Expo and EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Publish preview update
+        if: inputs.mode == 'preview'
+        env:
+          BRANCH: ${{ inputs.branch || format('pr-{0}', github.event.pull_request.number) }}
+          MESSAGE: ${{ github.event.pull_request.title || github.sha }}
+          ENVIRONMENT: ${{ inputs.environment || 'preview' }}
+        run: |
+          eas update --branch "$BRANCH" --message "$MESSAGE" --environment "$ENVIRONMENT" --non-interactive
+          echo "Published EAS Update to branch \`$BRANCH\`." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish OTA update
+        if: inputs.mode == 'update'
+        env:
+          BRANCH: ${{ inputs.branch || steps.product.outputs.channel }}
+          MESSAGE: ${{ github.event.head_commit.message || github.sha }}
+          ENVIRONMENT: ${{ inputs.environment || 'production' }}
+        run: |
+          eas update --branch "$BRANCH" --message "$MESSAGE" --environment "$ENVIRONMENT" --non-interactive
+          echo "Published OTA update to \`$BRANCH\`." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run EAS release workflow
+        if: inputs.mode == 'release'
+        env:
+          WORKFLOW: ${{ steps.product.outputs.workflow }}
+        run: |
+          if [ ! -f "$WORKFLOW" ]; then echo "::error file=$WORKFLOW::EAS workflow not found"; exit 1; fi
+          eas workflow:run "$WORKFLOW" --non-interactive
+          echo "Started EAS workflow \`$WORKFLOW\`. Follow it on expo.dev." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Unknown mode
+        if: inputs.mode != 'preview' && inputs.mode != 'update' && inputs.mode != 'release'
+        run: |
+          echo "::error::Unknown mode '${{ inputs.mode }}' (expected preview | update | release)"
+          exit 1

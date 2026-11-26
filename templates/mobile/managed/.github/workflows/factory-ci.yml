@@ -1,0 +1,42 @@
+# Managed by the software factory ({{FACTORY_REPO}}). Edits here are overwritten by `factory sync`.
+#
+# 1. checks: every command in .factory/product.json → "ci" (lint, typecheck, test, expo-doctor, export).
+# 2. Optional EAS jobs, off by default. Turn them on with repo variables, which need the EXPO_TOKEN secret:
+#      FACTORY_EAS_PREVIEW=true          publish an EAS Update to branch pr-<number> for every PR
+#      FACTORY_EAS_RELEASE_ON_MAIN=true  run .eas/workflows/release.yml (store builds + submit) on push to main
+# Production OTA updates and store releases are normally run by a human: `/factory-mobile:release`.
+name: factory-ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: factory-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    uses: "{{FACTORY_REPO}}/.github/workflows/ci.yml@{{FACTORY_REF}}"
+
+  eas-preview:
+    needs: checks
+    if: github.event_name == 'pull_request' && vars.FACTORY_EAS_PREVIEW == 'true'
+    uses: "{{FACTORY_REPO}}/.github/workflows/mobile-eas.yml@{{FACTORY_REF}}"
+    with:
+      mode: preview
+    secrets:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+  eas-release:
+    needs: checks
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.FACTORY_EAS_RELEASE_ON_MAIN == 'true'
+    uses: "{{FACTORY_REPO}}/.github/workflows/mobile-eas.yml@{{FACTORY_REF}}"
+    with:
+      mode: release
+    secrets:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}

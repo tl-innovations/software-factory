@@ -1,0 +1,119 @@
+# Reusable: Claude Code as a teammate on issues and PRs (@claude mentions, `claude` label).
+#
+# - Authenticates with your Claude subscription through the CLAUDE_CODE_OAUTH_TOKEN secret
+#   (`claude setup-token`). Runs share the usage limits of your interactive sessions.
+# - Installs the factory plugins from this repo's marketplace, so CI Claude uses the same skills,
+#   agents and hooks as your local sessions. This needs the factory repo to be readable by the
+#   runner (public), or set install-plugins: false.
+# - Installs product dependencies first, so Claude can run the product's checks before pushing.
+name: claude-agent (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      factory-repo:
+        description: owner/repo of the software factory (plugin marketplace source)
+        type: string
+        required: true
+      marketplace:
+        description: Marketplace name from .claude-plugin/marketplace.json
+        type: string
+        default: software-factory
+      install-plugins:
+        type: boolean
+        default: true
+      install-deps:
+        type: boolean
+        default: true
+      model:
+        type: string
+        default: sonnet
+      max-turns:
+        type: number
+        default: 40
+      timeout-minutes:
+        type: number
+        default: 45
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
+
+jobs:
+  claude:
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    concurrency:
+      group: factory-claude-${{ github.repository }}-${{ github.event.issue.number || github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: false
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Read .factory/product.json
+        id: product
+        env:
+          MARKETPLACE: ${{ inputs.marketplace }}
+        run: |
+          f=.factory/product.json
+          if [ ! -f "$f" ]; then
+            echo "::error file=$f::Missing product manifest. Run 'factory adopt' or 'factory sync' from the factory repo."
+            exit 1
+          fi
+          type=$(jq -r '.type // "web"' "$f")
+          {
+            echo "pm=$(jq -r '.packageManager // "npm"' "$f")"
+            echo "node=$(jq -r '.nodeVersion // "lts/*"' "$f")"
+            echo 'install<<EOF_FACTORY'
+            jq -r '.commands.install // ""' "$f"
+            echo 'EOF_FACTORY'
+            echo 'plugins<<EOF_FACTORY'
+            echo "factory@${MARKETPLACE}"
+            echo "factory-${type}@${MARKETPLACE}"
+            echo 'EOF_FACTORY'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Set up Bun
+        if: inputs.install-deps && steps.product.outputs.pm == 'bun'
+        uses: oven-sh/setup-bun@v2
+
+      - name: Set up Node
+        if: inputs.install-deps
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ steps.product.outputs.node }}
+          cache: ${{ steps.product.outputs.pm == 'npm' && 'npm' || '' }}
+          package-manager-cache: ${{ steps.product.outputs.pm == 'npm' }}
+
+      - name: Enable pnpm / yarn via corepack
+        if: inputs.install-deps && (steps.product.outputs.pm == 'pnpm' || steps.product.outputs.pm == 'yarn')
+        run: npm install -g corepack@latest && corepack enable
+
+      - name: Install dependencies
+        if: inputs.install-deps && steps.product.outputs.install != ''
+        env:
+          CMD: ${{ steps.product.outputs.install }}
+        run: bash -c "$CMD"
+
+      - name: Run Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          plugin_marketplaces: ${{ inputs.install-plugins && format('https://github.com/{0}.git', inputs.factory-repo) || '' }}
+          plugins: ${{ inputs.install-plugins && steps.product.outputs.plugins || '' }}
+          claude_args: >-
+            --model ${{ inputs.model }}
+            --max-turns ${{ inputs.max-turns }}
+            --append-system-prompt "You are running in the software factory CI for this product. Follow .factory/standards.md and CLAUDE.md.
+            For implementation requests, follow the factory feature or bugfix pipeline non-interactively:
+            put the spec and plan in the pull request description, run every command in .factory/product.json ci before pushing,
+            report any check you could not make pass, and never merge."

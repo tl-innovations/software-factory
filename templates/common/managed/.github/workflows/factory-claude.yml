@@ -1,0 +1,45 @@
+# Managed by the software factory ({{FACTORY_REPO}}). Edits here are overwritten by `factory sync`.
+#
+# Lets you drive Claude from GitHub:
+#   - comment "@claude <request>" on an issue or PR
+#   - open an issue whose body mentions @claude, or add the `claude` label to an issue
+# Only users with write access can trigger it (claude-code-action's default).
+#
+# Repo variables (Settings → Secrets and variables → Actions → Variables), all optional:
+#   FACTORY_CLAUDE_MODEL      default: sonnet
+#   FACTORY_CLAUDE_MAX_TURNS  default: 40
+# Secret required: CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`).
+name: factory-claude
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  claude:
+    if: >-
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+      (github.event_name == 'issues' && github.event.action == 'opened' && contains(github.event.issue.body, '@claude')) ||
+      (github.event_name == 'issues' && github.event.action == 'labeled' && github.event.label.name == 'claude')
+    uses: "{{FACTORY_REPO}}/.github/workflows/claude-agent.yml@{{FACTORY_REF}}"
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    with:
+      factory-repo: "{{FACTORY_REPO}}"
+      marketplace: "{{MARKETPLACE}}"
+      model: ${{ vars.FACTORY_CLAUDE_MODEL || 'sonnet' }}
+      max-turns: ${{ fromJSON(vars.FACTORY_CLAUDE_MAX_TURNS || '40') }}
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

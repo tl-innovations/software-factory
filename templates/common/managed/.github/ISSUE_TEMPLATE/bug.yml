@@ -1,0 +1,44 @@
+# Managed by the software factory ({{FACTORY_REPO}}). Edits here are overwritten by `factory sync`.
+name: Bug
+description: Report something broken. Add the `claude` label (or comment @claude) to have Claude fix it.
+title: "fix: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Tap ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Include error messages, screenshots or logs.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser and OS, or device, OS version and app version / build number.
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - "S1: outage, data loss, or security"
+        - "S2: major feature broken, no workaround"
+        - "S3: degraded, workaround exists"
+        - "S4: cosmetic"
+    validations:
+      required: true

@@ -1,0 +1,16 @@
+{
+  "name": "factory-web",
+  "displayName": "Software Factory: Web",
+  "version": "0.1.0",
+  "description": "Web product skills: quality audit (Lighthouse performance/accessibility/SEO, security headers) and Playwright end-to-end tests mapped to spec acceptance criteria.",
+  "author": {
+    "name": "Software Factory"
+  },
+  "keywords": [
+    "factory",
+    "web",
+    "lighthouse",
+    "accessibility",
+    "playwright"
+  ]
+}

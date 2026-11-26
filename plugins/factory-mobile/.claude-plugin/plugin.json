@@ -1,0 +1,16 @@
+{
+  "name": "factory-mobile",
+  "displayName": "Software Factory: Mobile",
+  "version": "0.1.0",
+  "description": "Mobile (Expo / EAS) skills: store releases with preflight checks and release notes, and OTA updates with native-change safety checks.",
+  "author": {
+    "name": "Software Factory"
+  },
+  "keywords": [
+    "factory",
+    "mobile",
+    "expo",
+    "eas",
+    "react-native"
+  ]
+}
