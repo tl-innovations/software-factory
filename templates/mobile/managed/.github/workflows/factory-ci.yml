@@ -3,14 +3,15 @@
 # 1. checks: every command in .factory/product.json → "ci" (lint, typecheck, test, expo-doctor, export).
 # 2. Optional EAS jobs, off by default. Turn them on with repo variables, which need the EXPO_TOKEN secret:
 #      FACTORY_EAS_PREVIEW=true          publish an EAS Update to branch pr-<number> for every PR
-#      FACTORY_EAS_RELEASE_ON_MAIN=true  run .eas/workflows/release.yml (store builds + submit) on push to main
+#      FACTORY_EAS_RELEASE_ON_MAIN=true  run .eas/workflows/release.yml (store builds + submit) on push to {{DEFAULT_BRANCH}}
 # Production OTA updates and store releases are normally run by a human: `/factory-mobile:release`.
 name: factory-ci
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
-    branches: [main]
+    branches: [{{DEFAULT_BRANCH}}]
 
 permissions:
   contents: read
@@ -34,7 +35,7 @@ jobs:
 
   eas-release:
     needs: checks
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.FACTORY_EAS_RELEASE_ON_MAIN == 'true'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/{{DEFAULT_BRANCH}}' && vars.FACTORY_EAS_RELEASE_ON_MAIN == 'true'
     uses: "{{FACTORY_REPO}}/.github/workflows/mobile-eas.yml@{{FACTORY_REF}}"
     with:
       mode: release

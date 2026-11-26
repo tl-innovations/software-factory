@@ -107,3 +107,18 @@ test("writeProduct fills missing keys but never overwrites existing values", () 
   assert.deepEqual(after.gates, first.gates);
   assert.equal(writeProduct(dir, first), "unchanged");
 });
+
+test("solution-style tsconfig (Vite) gets build-mode typecheck; oxlint script is used as-is", () => {
+  const dir = repo({
+    "package.json": {
+      scripts: { dev: "vite", build: "tsc -b && vite build", lint: "oxlint" },
+      devDependencies: { vite: "^8.0.0", typescript: "^7.0.0" },
+    },
+    "package-lock.json": "{}",
+    "tsconfig.json": '{\n  // project references\n  "files": [],\n  "references": [{ "path": "./tsconfig.app.json" }]\n}',
+  });
+  const d = detect(dir);
+  assert.equal(d.commands.typecheck, "npx tsc -b --noEmit");
+  assert.equal(d.commands.lint, "npm run lint");
+  assert.equal(detect(repo({ "package.json": {}, "tsconfig.json": "{}" })).commands.typecheck, "npx tsc --noEmit");
+});

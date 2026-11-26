@@ -102,7 +102,7 @@ export function detect(dir) {
     typecheck: typecheckScript
       ? runScript(typecheckScript)
       : has("tsconfig.json")
-        ? "npx tsc --noEmit"
+        ? tscCommand(dir)
         : "",
     test:
       testScript && !/no test specified/i.test(scripts.test)
@@ -166,6 +166,22 @@ function readdirSafe(dir) {
 }
 
 /**
+ * A "solution-style" tsconfig (Vite, Astro, monorepos: `files: []` + `references`) makes plain
+ * `tsc --noEmit` check nothing and exit 0 even with type errors. Build mode follows the references.
+ */
+function tscCommand(dir) {
+  let raw = "";
+  try {
+    raw = readFileSync(join(dir, "tsconfig.json"), "utf8");
+  } catch {
+    /* unreadable: fall through to the plain command */
+  }
+  return /"references"\s*:\s*\[\s*\{/.test(raw)
+    ? "npx tsc -b --noEmit"
+    : "npx tsc --noEmit";
+}
+
+/**
  * Build a product manifest. When the checkout has a package.json, detected commands win
  * (including empty ones, i.e. "this repo has no tests yet"); otherwise template defaults are used.
  */
@@ -175,6 +191,7 @@ export function buildManifest({
   description,
   templateMeta,
   detected,
+  defaultBranch,
 }) {
   const defaults = structuredClone(templateMeta.product);
   const fromRepo = detected?.hasPackageJson;
@@ -194,10 +211,13 @@ export function buildManifest({
     deploy: {
       ...(defaults.deploy ?? {}),
       ...(fromRepo && detected.deploy ? { provider: detected.deploy } : {}),
+      ...(defaultBranch ? { productionBranch: defaultBranch } : {}),
     },
   };
   if (type === "mobile") manifest.mobile = defaults.mobile ?? {};
-  manifest.guard = { protectedBranches: ["main", "master"] };
+  manifest.guard = {
+    protectedBranches: [...new Set(["main", "master", defaultBranch].filter(Boolean))],
+  };
   return manifest;
 }
 

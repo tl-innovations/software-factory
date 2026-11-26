@@ -169,7 +169,7 @@ export async function doctor(argv) {
       );
     }
 
-    const vars = templateVars(cfg, p);
+    const vars = templateVars(cfg, { ...p, defaultBranch: ref });
     const drift = [];
     for (const [rel, { mode, sources }] of collectFiles(p.type)) {
       if (mode !== "managed") continue;

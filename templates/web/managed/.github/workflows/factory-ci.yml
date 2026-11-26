@@ -5,9 +5,10 @@
 name: factory-ci
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
-    branches: [main]
+    branches: [{{DEFAULT_BRANCH}}]
 
 permissions:
   contents: read

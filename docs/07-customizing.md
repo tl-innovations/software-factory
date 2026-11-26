@@ -60,7 +60,7 @@ a browser during `/factory-web:audit`:
 ## Add a managed file
 
 Drop it in `templates/<layer>/managed/<path>`. It's rendered with `{{FACTORY_REPO}}`, `{{FACTORY_REF}}`,
-`{{MARKETPLACE}}`, `{{PRODUCT_NAME}}`, `{{PRODUCT_DIR}}`, `{{PRODUCT_TYPE}}`, `{{PRODUCT_REPO}}` and `{{DESCRIPTION}}`.
+`{{MARKETPLACE}}`, `{{PRODUCT_NAME}}`, `{{PRODUCT_DIR}}`, `{{PRODUCT_TYPE}}`, `{{PRODUCT_REPO}}`, `{{DESCRIPTION}}` and `{{DEFAULT_BRANCH}}` (the product's real default branch).
 Only those exact keys are replaced, so GitHub's `${{ … }}` expressions pass through. Then `sync`.
 
 Placeholders use `{{KEY}}`, not `__KEY__`, because Markdown formatters turn `__KEY__` into bold. The

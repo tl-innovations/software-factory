@@ -98,10 +98,16 @@ export async function newProduct(argv) {
 
   if (values["dry-run"]) {
     info(`Would create ${c.bold(name)} (${type}) at ${dir}`);
-    if (scaffoldCmd) log(`  scaffold: ${scaffoldCmd}  (in ${dirname(dir)})`);
+    if (scaffoldCmd) {
+      log(`  scaffold: ${scaffoldCmd}  (in ${dirname(dir)})`);
+      for (const step of meta.postScaffold ?? [])
+        log(`  post-scaffold: ${render(step, vars)}`);
+    }
     for (const [rel, { mode }] of collectFiles(type))
       log(`  ${mode.padEnd(7)} ${rel}`);
     log(`  manifest .factory/product.json`);
+    if (values.baseline && scaffoldCmd)
+      log(`  baseline: run the manifest's ci checks on the fresh scaffold`);
     if (values.github)
       log(
         `  gh repo create ${repo} --${values.public ? "public" : "private"} --source ${dir} --push`,
@@ -154,6 +160,10 @@ export async function newProduct(argv) {
   // 3. Commit.
   if (!existsSync(join(dir, ".git")))
     git(["init", "--quiet", "-b", "main"], dir);
+  // Scaffolders run their own `git init`, which follows the user's init.defaultBranch (often
+  // "master"). New products always use "main": the CI triggers and manifest are rendered for it.
+  else if (git(["branch", "-M", "main"], dir, { allowFail: true }).code !== 0)
+    git(["symbolic-ref", "HEAD", "refs/heads/main"], dir);
   commitAll(
     dir,
     `chore: bootstrap ${name} from the software factory\n\nFactory: ${cfg.factoryRepo}@${cfg.factoryRef}`,

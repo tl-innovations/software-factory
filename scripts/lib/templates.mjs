@@ -26,6 +26,7 @@ export const TEMPLATE_VARS = [
   "PRODUCT_TYPE",
   "PRODUCT_REPO",
   "DESCRIPTION",
+  "DEFAULT_BRANCH",
 ];
 const MODES = ["seed", "managed", "merge"];
 
@@ -49,7 +50,10 @@ export function loadTemplateMeta(type) {
   return readJson(file);
 }
 
-export function templateVars(cfg, { name, type, repo, description, dir }) {
+export function templateVars(
+  cfg,
+  { name, type, repo, description, dir, defaultBranch },
+) {
   return {
     FACTORY_REPO: cfg.factoryRepo,
     FACTORY_REF: cfg.factoryRef ?? "main",
@@ -59,6 +63,7 @@ export function templateVars(cfg, { name, type, repo, description, dir }) {
     PRODUCT_TYPE: type,
     PRODUCT_REPO: repo ?? "",
     DESCRIPTION: description || `${name} (${type})`,
+    DEFAULT_BRANCH: defaultBranch || "main",
   };
 }
 

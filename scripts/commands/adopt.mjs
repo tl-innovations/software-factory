@@ -81,12 +81,14 @@ export async function adopt(argv) {
     description: values.description || existing?.description,
     templateMeta: meta,
     detected,
+    defaultBranch: base,
   });
   const vars = templateVars(cfg, {
     name,
     type,
     repo,
     description: manifest.description,
+    defaultBranch: base,
   });
   const dryRun = values["dry-run"];
 

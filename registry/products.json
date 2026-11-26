@@ -1,4 +1,27 @@
 {
   "$schema": "./products.schema.json",
-  "products": []
+  "products": [
+    {
+      "name": "factory-demo-app",
+      "repo": "tl-innovations/factory-demo-app",
+      "type": "mobile",
+      "status": "active",
+      "description": "Factory demo: mobile app",
+      "framework": "expo",
+      "deploy": "eas",
+      "localPath": "../factory-demo-app",
+      "addedAt": "2026-11-26"
+    },
+    {
+      "name": "factory-demo-site",
+      "repo": "tl-innovations/factory-demo-site",
+      "type": "web",
+      "status": "active",
+      "description": "Factory demo: marketing site",
+      "framework": "next",
+      "deploy": "vercel",
+      "localPath": "../factory-demo-site",
+      "addedAt": "2026-11-26"
+    }
+  ]
 }

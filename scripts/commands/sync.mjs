@@ -101,7 +101,7 @@ export async function sync(argv) {
       const base = defaultBranch(dir);
       startBranch(dir, BRANCH, base);
       const meta = loadTemplateMeta(product.type);
-      const vars = templateVars(cfg, product);
+      const vars = templateVars(cfg, { ...product, defaultBranch: base });
       const manifest = buildManifest({
         name: product.name,
         type: product.type,
