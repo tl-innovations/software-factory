@@ -232,9 +232,12 @@ function installDeps(dir) {
  * Workspace clones are never "trusted" folders, so headless Claude ignores the project's
  * permissions.allow and may not load project-enabled plugins. Pass both explicitly: the product's
  * own allow/deny lists, plus the factory plugins from this checkout (the version being rolled out).
+ * User-level settings are excluded so a fleet run behaves the same on every operator machine.
  */
 export function sessionArgs(dir, type) {
-  const args = [];
+  // Reproducible runs: skip the operator's personal ~/.claude settings (their hooks, formatters and
+  // plugins would otherwise run inside every product). Project settings and auth still apply.
+  const args = ["--setting-sources", "project,local"];
   for (const name of ["factory", `factory-${type}`]) {
     const pluginDir = join(ROOT, "plugins", name);
     if (existsSync(join(pluginDir, ".claude-plugin", "plugin.json")))

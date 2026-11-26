@@ -56,7 +56,9 @@ For each product, the runner:
    Workspace clones are never "trusted" folders, so headless Claude would ignore the product's
    `permissions.allow`. The runner passes it explicitly instead (`--allowedTools`/`--disallowedTools`
    from the product's `.claude/settings.json`), and loads the factory plugins from this checkout with
-   `--plugin-dir`, so the guard hooks and stop gate always apply.
+   `--plugin-dir`, so the guard hooks and stop gate always apply. Your personal `~/.claude` settings (hooks, formatters, plugins) are excluded
+   (`--setting-sources project,local`), so a run behaves the same on any machine. Dependencies are
+   installed (`commands.install`) before Claude starts.
 3. Commits whatever changed, pushes (force-with-lease, since it's a factory-owned branch) and opens
    or updates a PR that includes Claude's summary.
 4. Saves the full JSON output to `.workspace/runs/<date>-<slug>/<product>.json`.

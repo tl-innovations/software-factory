@@ -15,6 +15,7 @@ test("fleet runs pass plugins and the product's permissions explicitly (untruste
     }),
   );
   const args = sessionArgs(dir, "web");
+  assert.equal(args[args.indexOf("--setting-sources") + 1], "project,local");
   const pluginDirs = args.filter((_, i) => args[i - 1] === "--plugin-dir");
   assert.equal(pluginDirs.length, 2);
   assert.match(pluginDirs[0], /plugins[\\/]factory$/);
