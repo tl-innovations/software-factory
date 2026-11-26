@@ -1,9 +1,9 @@
 {
   "$comment": "Run `node scripts/factory.mjs setup` to fill factoryRepo/githubOwner from your git remote. See docs/02-setup.md.",
-  "factoryRepo": "OWNER/software-factory",
+  "factoryRepo": "tl-innovations/software-factory",
   "factoryRef": "main",
   "marketplace": "software-factory",
-  "githubOwner": "OWNER",
+  "githubOwner": "tl-innovations",
   "productsDir": "..",
   "workspaceDir": ".workspace",
   "defaultVisibility": "private",
